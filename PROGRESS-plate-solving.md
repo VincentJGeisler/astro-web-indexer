@@ -10,12 +10,24 @@ Docker verification runs on remote host **10.3.1.76** (no local Docker).
 - No `git commit --no-verify` / `-n`. Never push to any remote.
 
 ## Current step
-**Step 1 — Schema migration (§4.1)** — IN PROGRESS
+**Step 2 — Dockerfile + compose (§4.2, §4.3)** — IN PROGRESS
+
+## Test stack on 10.3.1.76 (isolated from live :8100 deployment)
+- Project: `awi-ps`. Clone: `~/awi-ps-test` (branch `feature/plate-solving`).
+- `~/awi-ps-test/.env`: `NGINX_PORT=8101`, `FITS_DATA_PATH=/mnt/astronomy`
+  (read-only, shared with live), `AWI_PLATE_SOLVE=0`, `AWI_VERSION=ps-test`.
+- `~/awi-ps-test/docker-compose.override.yml` (UNTRACKED, test-only) renames
+  containers to `*-awi-ps` (compose hardcodes `*-awi`, which the live stack
+  already occupies).
+- **Gotcha (do not repeat):** `docker compose build` tags images `:latest` by
+  default (via `${AWI_VERSION:-latest}`) — same tag the live containers use.
+  ALWAYS keep `AWI_VERSION=ps-test` in the test `.env` so test images never
+  clobber the live `:latest` tags. (Caught & restored once already.)
 
 ## Steps
-1. [ ] **Schema migration (§4.1)** — write migration; verify on 10.3.1.76.
+1. [x] **Schema migration (§4.1)** — verified on 10.3.1.76 (Phinx OK).
 2. [ ] **Dockerfile + compose (§4.2, §4.3)** — ASTAP binary, OpenNGC CSV,
-       volume + env. Verify `astap_cli` execs on 10.3.1.76.
+       volume + env. Verify `astap_cli` execs on 10.3.1.76. IN PROGRESS.
 3. [ ] **`plate_solver.py` + tests (§4.4, §8)**.
 4. [ ] **`object_matcher.py` + tests (§4.5, §8)**.
 5. [ ] **`solve_pending.py` drain loop (§4.6)** — run `--once` on 10.3.1.76.

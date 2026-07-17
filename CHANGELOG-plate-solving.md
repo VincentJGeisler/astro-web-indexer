@@ -10,14 +10,18 @@ entry.
 
 ## [Unreleased]
 
-### Step 1 — Schema migration (spec §4.1)
-- Added Phinx migration `src/db/migrations/<ts>_add_plate_solving.php`
+### Step 1 — Schema migration (spec §4.1) — VERIFIED on 10.3.1.76
+- Added Phinx migration `src/db/migrations/20260716203022_add_plate_solving.php`
   (`AddPlateSolving`): ALTER TABLE `files` adding `solved_ra`, `solved_dec`,
   `solved_rotation`, `solved_pixscale`, `solve_status` (default 'pending'),
   `solved_at`, `matched_objects`, `primary_object`, plus indexes
   `idx_primary_object` and `idx_solve_status`.
 - Creates `catalog_objects` table (id, common_name, messier, obj_type, ra, dec,
   maj_axis_arcmin, idx_radec).
-- Backfills non-LIGHT rows to `solve_status='skipped'`.
-- [ ] Verify on 10.3.1.76: restart php container (runs `phinx migrate`), then
-  `SHOW COLUMNS FROM files LIKE 'solve%';` and confirm `catalog_objects` exists.
+- Backfills non-LIGHT rows to `solve_status='skipped'`. Migration uses
+  `IF NOT EXISTS` so it is idempotent and cannot destroy data.
+- Verified in isolated test stack `awi-ps` (project `awi-ps`, containers
+  `*-awi-ps`, port 8101, image tag `:ps-test`, separate DB volume; live
+  `*-awi` deployment at :8100 untouched): Phinx applied it, all columns /
+  indexes / `catalog_objects` present; backfill confirmed LIGHT stays
+  `pending`, DARK + NULL imgtype -> `skipped` via throwaway rows.
