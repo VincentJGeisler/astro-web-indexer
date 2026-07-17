@@ -18,7 +18,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('solve_pending')
 
-DRAIN_BATCH = 20
+DRAIN_BATCH = 5
 SLEEP_EMPTY_S = 30
 
 
@@ -152,6 +152,11 @@ def drain_once(conn, cur, fits_root, workers, timeout, db_dir, force_solve):
                 except Exception:
                     pass
 
+        # Keep connection alive — the DB can time out while solver threads run.
+        try:
+            conn.ping(reconnect=True, attempts=3, delay=2)
+        except Exception:
+            pass
         conn.commit()
     return total
 
