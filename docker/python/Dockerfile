@@ -52,5 +52,7 @@ COPY docker/python/indexer_lib ./indexer_lib/
 # Set the PATH to use the virtual environment's python
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Startup command
-CMD ["sh", "-c", "python reindex.py /var/fits && python watch_fs.py /var/fits"]
+# Startup command: index once, then run the plate-solve drain loop alongside
+# the filesystem watcher (the drain loop polls the DB for pending rows, so
+# files newly picked up by reindex/watch_fs are solved automatically).
+CMD ["sh", "-c", "python reindex.py /var/fits && (python solve_pending.py /var/fits & python watch_fs.py /var/fits)"]

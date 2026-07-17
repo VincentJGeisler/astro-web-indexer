@@ -139,6 +139,8 @@ def process_file_worker(full_path, fits_root, thumb_size):
         
         filt = get_value(header, 'FILTER', '', str)
         imgtype = get_value(header, 'IMAGETYP', 'UNKNOWN', str).upper()
+        # Plate-solving: only LIGHT frames are queued; everything else is skipped.
+        solve_status = 'pending' if imgtype == 'LIGHT' else 'skipped'
         xbinning = get_value(header, 'XBINNING', None, int)
         ybinning = get_value(header, 'YBINNING', None, int)
         egain = get_value(header, 'EGAIN', None, float)
@@ -213,7 +215,8 @@ def process_file_worker(full_path, fits_root, thumb_size):
             'siteelev': siteelev, 'sitelat': sitelat, 'sitelong': sitelong,
             'swcreate': swcreate, 'roworder': roworder, 'equinox': equinox,
             'thumb': thumb, 'thumb_crop': thumb_crop,
-            'moon_phase': moon_phase, 'moon_angle': moon_angle
+            'moon_phase': moon_phase, 'moon_angle': moon_angle,
+            'solve_status': solve_status
         }
         return {'status': 'success', 'path': rel_path, 'params': params}
 
@@ -317,7 +320,8 @@ def main():
                     siteelev, sitelat, sitelong,
                     swcreate, roworder, equinox,
                     thumb, thumb_crop, deleted_at, is_hidden, data_schema_version,
-                    moon_phase, moon_angle
+                    moon_phase, moon_angle,
+                    solve_status
                 ) VALUES (
                     %(path)s, %(file_hash)s, %(name)s, %(mtime)s, %(file_size)s, %(width)s, %(height)s, %(resolution)s, %(fov_w)s, %(fov_h)s,
                     %(object)s, %(objctra)s, %(objctdec)s,
@@ -329,7 +333,8 @@ def main():
                     %(siteelev)s, %(sitelat)s, %(sitelong)s,
                     %(swcreate)s, %(roworder)s, %(equinox)s,
                     %(thumb)s, %(thumb_crop)s, NULL, 0, 1,
-                    %(moon_phase)s, %(moon_angle)s
+                    %(moon_phase)s, %(moon_angle)s,
+                    %(solve_status)s
                 )
                 ON DUPLICATE KEY UPDATE
                     file_hash=VALUES(file_hash), mtime=VALUES(mtime), file_size=VALUES(file_size), width=VALUES(width), height=VALUES(height), resolution=VALUES(resolution), fov_w=VALUES(fov_w), fov_h=VALUES(fov_h), name=VALUES(name),
@@ -345,7 +350,11 @@ def main():
                     thumb_crop=COALESCE(VALUES(thumb_crop), thumb_crop),
                     deleted_at=NULL, is_hidden=is_hidden,
                     moon_phase=VALUES(moon_phase),
-                    moon_angle=VALUES(moon_angle)
+                    moon_angle=VALUES(moon_angle),
+                    solve_status=VALUES(solve_status),
+                    solved_ra=NULL, solved_dec=NULL, solved_rotation=NULL,
+                    solved_pixscale=NULL, matched_objects=NULL,
+                    primary_object=NULL, solved_at=NULL
             '''
             worker_func = partial(process_file_worker, fits_root=fits_root, thumb_size=thumb_size)
             batch_params = []
