@@ -162,6 +162,6 @@ return [
     'solved_rotation' => 'Rotation résolue',
     'matched_objects' => 'Objets correspondants',
     'header_object' => 'En-tête',
-    'header_object_tooltip' => 'La valeur OBJECT stockée dans l'en-tête FITS',
+    'header_object_tooltip' => 'La valeur OBJECT stockée dans l\'en-tête FITS',
 
 ];
