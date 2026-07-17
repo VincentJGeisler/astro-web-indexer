@@ -73,3 +73,14 @@ entry.
   DARK -> `skipped` (untouched); missing file -> `failed`. Disabled path exits
   0; empty star DB marks pending LIGHT -> `no_star_db` with one warning + exit
   (no busy-loop) — acceptance #2, #4, #5.
+
+### Step 6 — `reindex.py` touch-up + Dockerfile CMD (spec §4.7) — VERIFIED on 10.3.1.76
+- `reindex.py`: computes `solve_status` (`pending` for LIGHT, else `skipped`)
+  in the worker, adds it to the INSERT, and resets the solve columns in the ON
+  DUPLICATE KEY UPDATE. The full update only fires for content-changed files,
+  so unchanged solved rows are preserved.
+- `Dockerfile` CMD: `reindex && (solve_pending & watch_fs)`.
+- Verified with synthetic FITS: LIGHT->`pending`, DARK->`skipped`; re-run on
+  unchanged files keeps a solved row `solved` (acceptance #6); rewriting a
+  file resets its solve columns to `pending`. Container CMD smoke test: all
+  three phases start correctly.
