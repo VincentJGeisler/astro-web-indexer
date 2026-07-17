@@ -1,5 +1,6 @@
 import os
 import sys
+import math
 import mysql.connector
 import xxhash
 from astropy.io import fits
@@ -189,6 +190,9 @@ def process_file_worker(full_path, fits_root, thumb_size):
         objctrot = get_value(header, 'OBJCTROT', None, float)
         roworder = get_value(header, 'ROWORDER', None, str)
         equinox = get_value(header, 'EQUINOX', None, float)
+        # Sanitize: reject values outside MySQL FLOAT range (±3.4E38) or non-finite.
+        if equinox is not None and (not math.isfinite(equinox) or abs(equinox) > 3.4e38):
+            equinox = None
 
         if xpixsz and focallen and width and height:
             if xpixsz > 0 and focallen > 0:
