@@ -25,3 +25,29 @@ entry.
   `*-awi` deployment at :8100 untouched): Phinx applied it, all columns /
   indexes / `catalog_objects` present; backfill confirmed LIGHT stays
   `pending`, DARK + NULL imgtype -> `skipped` via throwaway rows.
+
+### Step 2 — Dockerfile + compose (spec §4.2, §4.3) — VERIFIED on 10.3.1.76
+- `docker/python/Dockerfile`: base switched to `python:3.9-slim` (Debian) so
+  the glibc ASTAP CLI runs natively (alpine+gcompat is unreliable for the
+  FreePascal binary; this is the spec-approved fallback). Downloads ASTAP CLI
+  v2026.07.16 (MPL 2.0) and OpenNGC `NGC.csv` pinned to release `v20260501`.
+- `docker-compose.yml` + `docker-compose.release.yml`: `astap_db` named volume
+  mounted at `/opt/astap_db`; new env `AWI_PLATE_SOLVE`, `AWI_SOLVE_WORKERS`,
+  `AWI_SOLVE_TIMEOUT`. Documented in `.env.example`.
+- Verified: `astap_cli` execs in-container (banner + usage, exit 0) —
+  acceptance #1. `NGC.csv` present (13,969 objects). D50 installed into the
+  volume (910 MB, 1476 `d50_*.1476` files). Test image isolated as `:ps-test`;
+  live `:latest` tags untouched.
+
+### Step 3 — `plate_solver.py` + tests (spec §4.4, §8) — VERIFIED on 10.3.1.76
+- `indexer_lib/plate_solver.py`: `star_db_present()`, `solve()`, defensive
+  `.ini` parser (PLTSOLVD/CRVAL1/CRVAL2/CDELT2/optional CROTA2), XISF->FITS
+  fallback. All ASTAP output goes to a per-call temp dir under `/tmp/astap`,
+  cleaned in `finally`.
+- `tests/test_plate_solver.py`: 8 unit tests, all pass (run in-container).
+- Real end-to-end solve on an NGC 185 light frame: returned RA=9.74°,
+  Dec=48.34° (matches NGC 185), pixscale=0.3465″/px (matches header geometry),
+  5.1s hinted. Failure path returns `None` (bad hint, 2.7s) and missing-file
+  returns `None`. `/tmp/astap` stays clean.
+- Note: the real-solve test frame has no `IMAGETYP` header, so it would be
+  `skipped` by the drain loop; `solve()` itself works regardless.

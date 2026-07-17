@@ -10,7 +10,7 @@ Docker verification runs on remote host **10.3.1.76** (no local Docker).
 - No `git commit --no-verify` / `-n`. Never push to any remote.
 
 ## Current step
-**Step 2 — Dockerfile + compose (§4.2, §4.3)** — IN PROGRESS
+**Step 4 — `object_matcher.py` + tests (§4.5, §8)** — IN PROGRESS
 
 ## Test stack on 10.3.1.76 (isolated from live :8100 deployment)
 - Project: `awi-ps`. Clone: `~/awi-ps-test` (branch `feature/plate-solving`).
@@ -26,10 +26,13 @@ Docker verification runs on remote host **10.3.1.76** (no local Docker).
 
 ## Steps
 1. [x] **Schema migration (§4.1)** — verified on 10.3.1.76 (Phinx OK).
-2. [ ] **Dockerfile + compose (§4.2, §4.3)** — ASTAP binary, OpenNGC CSV,
-       volume + env. Verify `astap_cli` execs on 10.3.1.76. IN PROGRESS.
-3. [ ] **`plate_solver.py` + tests (§4.4, §8)**.
-4. [ ] **`object_matcher.py` + tests (§4.5, §8)**.
+2. [x] **Dockerfile + compose (§4.2, §4.3)** — verified `astap_cli` execs
+       in-container on 10.3.1.76; NGC.csv present (13969 rows); `:latest` tags
+       not clobbered (isolated as `:ps-test`). Base switched to python:3.9-slim.
+3. [x] **`plate_solver.py` + tests (§4.4, §8)** — 8 unit tests pass; real solve
+       verified on NGC 185 frame (RA/Dec/pixscale correct); failure + missing
+       paths return None; `/tmp/astap` clean. D50 installed in astap_db volume.
+4. [ ] **`object_matcher.py` + tests (§4.5, §8)**. IN PROGRESS.
 5. [ ] **`solve_pending.py` drain loop (§4.6)** — run `--once` on 10.3.1.76.
 6. [ ] **`reindex.py` touch-up (§4.7)** — set `solve_status` on insert/update.
 7. [ ] **PHP UI + translations + SFF (§4.8)**.
