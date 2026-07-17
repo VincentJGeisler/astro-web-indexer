@@ -1,0 +1,7 @@
+# Test-only dependencies. NOT installed in the runtime image.
+# Run tests inside the python container, e.g.:
+#   docker run --rm -v $(pwd)/docker/python/tests:/opt/scripts/tests \
+#     ghcr.io/michelegz/astro-web-indexer-python:ps-test \
+#     sh -c "pip install -q -r requirements-dev.txt 2>/dev/null; python -m pytest tests/ -q"
+-r requirements.txt
+pytest
