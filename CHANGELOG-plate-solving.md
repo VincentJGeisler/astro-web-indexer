@@ -51,3 +51,13 @@ entry.
   returns `None`. `/tmp/astap` stays clean.
 - Note: the real-solve test frame has no `IMAGETYP` header, so it would be
   `skipped` by the drain loop; `solve()` itself works regardless.
+
+### Step 4 — `object_matcher.py` + tests (spec §4.5, §8) — VERIFIED on 10.3.1.76
+- `indexer_lib/object_matcher.py`: `seed_catalog()` (idempotent OpenNGC load,
+  batches of 500, skips blank RA/Dec) and `match_objects()` (dec/RA band
+  pre-filter via `idx_radec`, exact haversine check, largest-object-first
+  ordering, `matched_objects` <=512 chars with no truncated IDs, Messier
+  preferred for `primary_object`, RA 0/360 wrap + pole-safe).
+- `tests/test_object_matcher.py`: 23 tests pass (run in-container with DB).
+- Real-data checks: seeded 13,962 objects; M31 -> `messier='M31'`;
+  `match_objects` on the solved NGC 185 frame returns `primary=NGC0185`.
