@@ -145,4 +145,21 @@ return [
     'roworder' => 'Zeilenreihenfolge',
     'equinox' => 'Äquinox',
     'moon_angle' => 'Mondwinkel',
+
+    // Plate solving
+    'identified_object' => 'Identifiziertes Objekt',
+    'all_identified_objects' => 'Alle identifizierten Objekte',
+    'solve_status' => 'Löse-Status',
+    'solve_status_pending' => 'Ausstehend',
+    'solve_status_solved' => 'Gelöst',
+    'solve_status_failed' => 'Fehlgeschlagen',
+    'solve_status_skipped' => 'Übersprungen',
+    'solve_status_no_star_db' => 'Sternendatenbank fehlt',
+    'solved_ra' => 'Gelöste RA',
+    'solved_dec' => 'Gelöste Dek.',
+    'solved_pixscale' => 'Gelöste Pixelgröße',
+    'solved_rotation' => 'Gelöste Rotation',
+    'matched_objects' => 'Übereinstimmende Objekte',
+    'header_object' => 'Header',
+    'header_object_tooltip' => 'Der in der FITS-Kopfzeile gespeicherte OBJECT-Wert',
 ];

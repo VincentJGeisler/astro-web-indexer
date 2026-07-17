@@ -62,8 +62,23 @@ $sqlParams[':imgtype'] = $imgTypes[$searchType];
 foreach ($filters as $filter) {
     $id = $filter['id'];
 
+    // Plate solving: for RA/Dec matching, prefer the solved coordinates over
+    // the header values when available (COALESCE(solved_X, X)). This makes the
+    // Smart Frame Finder match on the true sky position.
+    if ($id === 'ra') {
+        $columnExpr = 'COALESCE(solved_ra, `ra`)';
+        $refRaw = $refFile['solved_ra'] ?? $refFile['ra'] ?? null;
+    } elseif ($id === 'dec') {
+        $columnExpr = 'COALESCE(solved_dec, `dec`)';
+        $refRaw = $refFile['solved_dec'] ?? $refFile['dec'] ?? null;
+    } else {
+        $columnExpr = "`{$id}`";
+        $refRaw = $refFile[$id] ?? null;
+    }
+    $escapedId = $columnExpr;
+
     // CRITICAL: Do not apply a filter if the reference file has no value for it.
-    if (!isset($refFile[$id]) || $refFile[$id] === null) {
+    if ($refRaw === null) {
         continue;
     }
 
@@ -76,9 +91,8 @@ foreach ($filters as $filter) {
     
     // Slider filters (tolerance-based)
     elseif (strpos($filter['type'], 'slider') !== false) {
-        $refValue = (float)($filter['ref_value'] ?? $refFile[$id]);
-        $tolerance = (float)$filter['tolerance'];
-        
+        $refValue = (float)($filter['ref_value'] ?? $refRaw);
+        $tolerance = (float)$filter['tolerance'];        
         // Epsilon for float comparison when tolerance is zero
         $epsilon = 0.001;
 
@@ -86,7 +100,7 @@ foreach ($filters as $filter) {
             $delta = $refValue * ($tolerance / 100) + ($tolerance == 0 ? $epsilon : 0);
             $min = $refValue - $delta;
             $max = $refValue + $delta;
-            $escapedId = "`{$id}`";
+            $escapedId = $columnExpr;
             $sqlWhere[] = "{$escapedId} BETWEEN :{$id}_min AND :{$id}_max";
             $sqlParams[":{$id}_min"] = $min;
             $sqlParams[":{$id}_max"] = $max;
@@ -95,7 +109,7 @@ foreach ($filters as $filter) {
             $effective_tolerance = $tolerance + ($tolerance == 0 ? $epsilon : 0);
             $min = max(0, $refValue - $effective_tolerance);
             $max = min(100, $refValue + $effective_tolerance);
-            $escapedId = "`{$id}`";
+            $escapedId = $columnExpr;
             // Use explicit >= and <= which is more robust for floats than BETWEEN
             $sqlWhere[] = "({$escapedId} >= :{$id}_min AND {$escapedId} <= :{$id}_max)";
             $sqlParams[":{$id}_min"] = $min;
@@ -105,7 +119,7 @@ foreach ($filters as $filter) {
             $effective_tolerance = $tolerance + ($tolerance == 0 ? $epsilon : 0);
             $min = $refValue - $effective_tolerance;
             $max = $refValue + $effective_tolerance;
-            $escapedId = "`{$id}`";
+            $escapedId = $columnExpr;
             $sqlWhere[] = "{$escapedId} BETWEEN :{$id}_min AND :{$id}_max";
             $sqlParams[":{$id}_min"] = $min;
             $sqlParams[":{$id}_max"] = $max;
@@ -117,7 +131,7 @@ foreach ($filters as $filter) {
             $maxDate = clone $refDate;
             $maxDate->modify("+{$tolerance} days");
             
-            $escapedId = "`{$id}`";
+            $escapedId = $columnExpr;
             $sqlWhere[] = "{$escapedId} BETWEEN :{$id}_min AND :{$id}_max"; // And here
             $sqlParams[":{$id}_min"] = $minDate->format('Y-m-d H:i:s');
             $sqlParams[":{$id}_max"] = $maxDate->format('Y-m-d H:i:s');

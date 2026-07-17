@@ -147,4 +147,21 @@ return [
     'equinox' => 'Équinoxe',
     'moon_angle' => 'Angle de la Lune',
 
+    // Plate solving
+    'identified_object' => 'Objet identifié',
+    'all_identified_objects' => 'Tous les objets identifiés',
+    'solve_status' => 'Statut de résolution',
+    'solve_status_pending' => 'En attente',
+    'solve_status_solved' => 'Résolu',
+    'solve_status_failed' => 'Échoué',
+    'solve_status_skipped' => 'Ignoré',
+    'solve_status_no_star_db' => 'Base stellaire absente',
+    'solved_ra' => 'AD résolue',
+    'solved_dec' => 'Dec résolue',
+    'solved_pixscale' => 'Échelle de pixel résolue',
+    'solved_rotation' => 'Rotation résolue',
+    'matched_objects' => 'Objets correspondants',
+    'header_object' => 'En-tête',
+    'header_object_tooltip' => 'La valeur OBJECT stockée dans l'en-tête FITS',
+
 ];

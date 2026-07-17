@@ -49,10 +49,10 @@ function getFolders(PDO $conn, string $currentDir): array
     return $folders;
 }
 
-function countFiles(PDO $conn, string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo): int
+function countFiles(PDO $conn, string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo, string $solvedObject = ''): int
 {
-    list($sql, $params) = buildQueryParts($dir, $object, $filter, $imgtype, $dateObsFrom, $dateObsTo);
-    
+    list($sql, $params) = buildQueryParts($dir, $object, $filter, $imgtype, $dateObsFrom, $dateObsTo, $solvedObject);
+
     $countSql = "SELECT COUNT(*) as cnt FROM files WHERE " . implode(' AND ', $sql);
 
     $stmt = $conn->prepare($countSql);
@@ -65,7 +65,7 @@ function countFiles(PDO $conn, string $dir, string $object, string $filter, stri
     return (int)($result['cnt'] ?? 0);
 }
 
-function getFiles(PDO $conn, string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo, int $perPage, int $offset, string $sortBy, string $sortOrder): array
+function getFiles(PDO $conn, string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo, string $solvedObject, int $perPage, int $offset, string $sortBy, string $sortOrder): array
 {
         // Validazione e sanitizzazione di sortBy e sortOrder
     $allowedSortBy = [
@@ -84,7 +84,7 @@ function getFiles(PDO $conn, string $dir, string $object, string $filter, string
     $sortBy = in_array($sortBy, $allowedSortBy) ? $sortBy : 'name';
     $sortOrder = in_array(strtoupper($sortOrder), $allowedSortOrder) ? strtoupper($sortOrder) : 'ASC';
 
-    list($sqlConditions, $params) = buildQueryParts($dir, $object, $filter, $imgtype, $dateObsFrom, $dateObsTo);
+    list($sqlConditions, $params) = buildQueryParts($dir, $object, $filter, $imgtype, $dateObsFrom, $dateObsTo, $solvedObject);
     
     $sql = "SELECT * FROM files WHERE " . implode(' AND ', $sqlConditions) . " ORDER BY " . $sortBy . " " . $sortOrder . " LIMIT :per_page OFFSET :offset";
 
@@ -138,10 +138,10 @@ function getDistinctValues(PDO $conn, string $column, string $dir, string $curre
     return $values;
 }
 
-function sumExposureTime(PDO $conn, string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo): float
+function sumExposureTime(PDO $conn, string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo, string $solvedObject = ''): float
 {
-    list($sql, $params) = buildQueryParts($dir, $object, $filter, $imgtype, $dateObsFrom, $dateObsTo);
-    
+    list($sql, $params) = buildQueryParts($dir, $object, $filter, $imgtype, $dateObsFrom, $dateObsTo, $solvedObject);
+
     $sumSql = "SELECT SUM(exptime) as total_exposure FROM files WHERE " . implode(' AND ', $sql);
 
     $stmt = $conn->prepare($sumSql);
@@ -154,7 +154,7 @@ function sumExposureTime(PDO $conn, string $dir, string $object, string $filter,
     return (float)($result['total_exposure'] ?? 0);
 }
 
-function buildQueryParts(string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo): array
+function buildQueryParts(string $dir, string $object, string $filter, string $imgtype, string $dateObsFrom, string $dateObsTo, string $solvedObject = ''): array
 {
     $sql = [
         "is_hidden = 0",
@@ -177,6 +177,10 @@ function buildQueryParts(string $dir, string $object, string $filter, string $im
         $sql[] = "imgtype = :imgtype";
         $params[':imgtype'] = $imgtype;
     }
+    if ($solvedObject !== '') {
+        $sql[] = "primary_object = :solved_object";
+        $params[':solved_object'] = $solvedObject;
+    }
     if ($dateObsFrom !== '') {
         $sql[] = "DATE(date_obs) >= :date_obs_from";
         $params[':date_obs_from'] = $dateObsFrom;
@@ -187,6 +191,23 @@ function buildQueryParts(string $dir, string $object, string $filter, string $im
     }
 
     return [$sql, $params];
+}
+
+/**
+ * Distinct plate-solved object names (primary_object), with counts, for the
+ * "Identified object" filter facet.
+ */
+function getDistinctSolvedObjects(PDO $conn, string $dir): array
+{
+    $dirPattern = $dir === '' ? '%' : $dir . '/%';
+    $sql = "SELECT primary_object, COUNT(*) AS cnt FROM files
+            WHERE path LIKE :dir_pattern AND deleted_at IS NULL
+              AND primary_object IS NOT NULL AND primary_object != ''
+            GROUP BY primary_object ORDER BY primary_object";
+    $stmt = $conn->prepare($sql);
+    $stmt->bindValue(':dir_pattern', $dirPattern, PDO::PARAM_STR);
+    $stmt->execute();
+    return $stmt->fetchAll();
 }
 
 function getDuplicatesByHash(PDO $conn, string $hash): array

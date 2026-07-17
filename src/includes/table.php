@@ -29,6 +29,7 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
             'visible_duplicate_count' => ['duplicates', true],
             'path' => ['path', null],
             'object' => ['object', false],
+            'primary_object' => ['identified_object', true],
             'date_obs' => ['date_obs', false],
             'moon_phase' => ['moon_phase', true],
             'exptime' => ['exposure', false],
@@ -55,6 +56,10 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
                 'sitelat' => ['sitelat', false], 'sitelong' => ['sitelong', false], 'swcreate' => ['swcreate', false], 
                 'roworder' => ['roworder', false], 'equinox' => ['equinox', false], 'date_avg' => ['date_avg', false], 
                 'objctra' => ['objctra', false], 'objctdec' => ['objctdec', false],
+                'solve_status' => ['solve_status', true],
+                'solved_ra' => ['solved_ra', true], 'solved_dec' => ['solved_dec', true],
+                'solved_pixscale' => ['solved_pixscale', true], 'solved_rotation' => ['solved_rotation', true],
+                'matched_objects' => ['matched_objects', true],
                 'width' => ['dimensions', true], 
                 'resolution' => ['resolution', true], 
                 'fov_w' => ['field_of_view', true], 
@@ -117,6 +122,7 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
                 </td>
                 <td class="p-3 text-sm text-gray-400 break-all"><?= htmlspecialchars(dirname($f['path'] ?? '')) ?></td>
                 <td class="p-3 text-gray-200"><?= htmlspecialchars($f['object'] ?? '') ?></td>
+                <td class="p-3 text-sm"><?= getIdentifiedObjectMarkup($f) ?></td>
                 <td class="p-3 text-sm text-gray-300">
                     <span class="utc-date" data-timestamp="<?= !empty($f['date_obs']) ? strtotime($f['date_obs']) : '' ?>">
                         <?= htmlspecialchars($f['date_obs'] ?? '') ?>
@@ -186,6 +192,14 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
                     <td class="p-3 text-sm text-gray-300"><?= htmlspecialchars($f['objctra'] ?? '') ?></td>
                     <td class="p-3 text-sm text-gray-300"><?= htmlspecialchars($f['objctdec'] ?? '') ?></td>
 
+                    <!-- Plate solving -->
+                    <td class="p-3 text-sm text-gray-300"><?= htmlspecialchars(solveStatusLabel((string)($f['solve_status'] ?? 'pending'))) ?></td>
+                    <td class="p-3 text-sm text-gray-300"><?= !empty($f['solved_ra']) ? formatRaDegToHms($f['solved_ra']) : '' ?></td>
+                    <td class="p-3 text-sm text-gray-300"><?= !empty($f['solved_dec']) ? formatDecDegToDms($f['solved_dec']) : '' ?></td>
+                    <td class="p-3 text-sm text-gray-300"><?= isset($f['solved_pixscale']) && $f['solved_pixscale'] !== '' && $f['solved_pixscale'] !== null ? number_format((float)$f['solved_pixscale'], 3) . '"/px' : '' ?></td>
+                    <td class="p-3 text-sm text-gray-300"><?= isset($f['solved_rotation']) && $f['solved_rotation'] !== '' && $f['solved_rotation'] !== null ? number_format((float)$f['solved_rotation'], 2) . '°' : '' ?></td>
+                    <td class="p-3 text-sm text-gray-300"><?= htmlspecialchars($f['matched_objects'] ?? '') ?></td>
+
                     <td class="p-3 text-sm text-gray-300">
                         <?php if (!empty($f['width']) && !empty($f['height'])): ?>
                             <?= htmlspecialchars($f['width']) ?>x<?= htmlspecialchars($f['height']) ?>
@@ -221,7 +235,7 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
             </tr>
             <?php endforeach; ?>
                         <?php if (empty($files)): ?>
-                <tr><td colspan="<?= $showAdvanced ? '33' : '9' ?>" class="p-4 text-center text-gray-500"><?php echo __('no_files_found') ?></td></tr>
+                <tr><td colspan="<?= $showAdvanced ? '40' : '10' ?>" class="p-4 text-center text-gray-500"><?php echo __('no_files_found') ?></td></tr>
             <?php endif; ?>
 </tbody>
     </table>
@@ -274,6 +288,10 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
                 <div class="meta-item">
                     <span class="meta-label"><?php echo __('object') ?></span>
                     <span class="meta-value"><?= htmlspecialchars($f['object'] ?? '') ?></span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label"><?php echo __('identified_object') ?></span>
+                    <span class="meta-value"><?= getIdentifiedObjectMarkup($f) ?></span>
                 </div>
                 <div class="meta-item">
                     <span class="meta-label"><?php echo __('filter') ?></span>

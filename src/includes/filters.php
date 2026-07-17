@@ -26,6 +26,18 @@ $thumbSize = $_COOKIE['thumbSize'] ?? '3';
     </div>
 
     <div>
+        <label for="solved-object-select" class="block text-sm font-medium text-gray-300 mb-1"><?php echo __('identified_object') ?></label>
+        <select id="solved-object-select" name="solved_object" class="appearance-none bg-gray-700 border border-gray-600 text-gray-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 w-40 pr-8 bg-no-repeat bg-right" style="background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e'); background-position: right 0.5rem center; background-size: 1.5em 1.5em;">
+            <option value=""><?php echo __('all_identified_objects') ?></option>
+            <?php foreach ($solvedObjects as $so): ?>
+                <option value="<?= htmlspecialchars($so['primary_object']) ?>" <?= $so['primary_object']==$filterSolvedObject?'selected':'' ?>>
+                    <?= htmlspecialchars($so['primary_object']) ?> (<?= (int)$so['cnt'] ?>)
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
+    <div>
                 <label for="filter-select" class="block text-sm font-medium text-gray-300 mb-1"><?php echo __('filter') ?></label>
         <select id="filter-select" name="filter" class="appearance-none bg-gray-700 border border-gray-600 text-gray-100 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 w-40 pr-8 bg-no-repeat bg-right" style="background-image: url('data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e'); background-position: right 0.5rem center; background-size: 1.5em 1.5em;">
             <option value=""><?php echo __('all_filters') ?></option>

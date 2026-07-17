@@ -38,7 +38,7 @@ return [
     'seconds' => 'seconds',
     'download_selected' => 'Download Selected (.zip)',
     'show_advanced_fields' => 'Show advanced fields',
-    'footer_credits' => 'Astro Web Indexer - Created by Michele Guzzini - Released under GPL',
+    'footer_credits' => 'Astro Web Indexer - Michele Guzzini - Released under GPL',
     'db_connection_error' => 'Unable to connect to database: {0}',
     'no_files_selected' => 'No files selected for download.',
     'menu_directory' => 'Folders',
@@ -147,5 +147,21 @@ return [
     'filter_by_folder' => 'Filtra by Folder',
     'no_subfolders' => 'No Subfolders',
 
+    // Plate solving
+    'identified_object' => 'Identified object',
+    'all_identified_objects' => 'All identified objects',
+    'solve_status' => 'Solve status',
+    'solve_status_pending' => 'Pending',
+    'solve_status_solved' => 'Solved',
+    'solve_status_failed' => 'Failed',
+    'solve_status_skipped' => 'Skipped',
+    'solve_status_no_star_db' => 'Star database missing',
+    'solved_ra' => 'Solved RA',
+    'solved_dec' => 'Solved Dec',
+    'solved_pixscale' => 'Solved pixel scale',
+    'solved_rotation' => 'Solved rotation',
+    'matched_objects' => 'Matched objects',
+    'header_object' => 'Header',
+    'header_object_tooltip' => 'The OBJECT value stored in the FITS header',
 
 ];

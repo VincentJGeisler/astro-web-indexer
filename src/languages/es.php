@@ -168,4 +168,21 @@ return [
     'roworder' => 'Orden de Filas',
     'equinox' => 'Equinoccio',
     'moon_angle' => 'Ángulo Lunar',
+
+    // Plate solving
+    'identified_object' => 'Objeto identificado',
+    'all_identified_objects' => 'Todos los objetos identificados',
+    'solve_status' => 'Estado de resolución',
+    'solve_status_pending' => 'Pendiente',
+    'solve_status_solved' => 'Resuelto',
+    'solve_status_failed' => 'Fallido',
+    'solve_status_skipped' => 'Omitido',
+    'solve_status_no_star_db' => 'Base de datos estelar ausente',
+    'solved_ra' => 'AR resuelta',
+    'solved_dec' => 'Dec resuelta',
+    'solved_pixscale' => 'Escala de píxel resuelta',
+    'solved_rotation' => 'Rotación resuelta',
+    'matched_objects' => 'Objetos coincidentes',
+    'header_object' => 'Cabecera',
+    'header_object_tooltip' => 'El valor OBJECT almacenado en la cabecera FITS',
 ];

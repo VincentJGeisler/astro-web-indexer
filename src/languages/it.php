@@ -147,4 +147,21 @@ return [
     'filter_by_folder' => 'Filtra per Cartella',
     'no_subfolders' => 'Nessuna sottocartella',
 
+    // Plate solving
+    'identified_object' => 'Oggetto identificato',
+    'all_identified_objects' => 'Tutti gli oggetti identificati',
+    'solve_status' => 'Stato risoluzione',
+    'solve_status_pending' => 'In attesa',
+    'solve_status_solved' => 'Risolto',
+    'solve_status_failed' => 'Fallito',
+    'solve_status_skipped' => 'Saltato',
+    'solve_status_no_star_db' => 'Database stellare mancante',
+    'solved_ra' => 'AR risolta',
+    'solved_dec' => 'Dec risolta',
+    'solved_pixscale' => 'Scala pixel risolta',
+    'solved_rotation' => 'Rotazione risolta',
+    'matched_objects' => 'Oggetti corrispondenti',
+    'header_object' => 'Intestazione',
+    'header_object_tooltip' => 'Il valore OBJECT memorizzato nell\'intestazione FITS',
+
 ];
