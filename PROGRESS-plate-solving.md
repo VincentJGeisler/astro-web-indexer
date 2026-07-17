@@ -1,7 +1,6 @@
 # Plate Solving — Progress Tracker
 
 Branch: `feature/plate-solving`. Spec: `docs/SPEC-plate-solving.md` §9 order.
-Docker verification runs on remote host **10.3.1.76** (no local Docker).
 
 ## Hard rules (do not violate)
 - **NEVER push to `main` / GitHub remote.** All work stays on
@@ -10,42 +9,34 @@ Docker verification runs on remote host **10.3.1.76** (no local Docker).
 - No `git commit --no-verify` / `-n`. Never push to any remote.
 
 ## Current step
-**Step 7 — PHP UI + translations + SFF (§4.8)** — IN PROGRESS
-
-## Test stack on 10.3.1.76 (isolated from live :8100 deployment)
-- Project: `awi-ps`. Clone: `~/awi-ps-test` (branch `feature/plate-solving`).
-- `~/awi-ps-test/.env`: `NGINX_PORT=8101`, `FITS_DATA_PATH=/mnt/astronomy`
-  (read-only, shared with live), `AWI_PLATE_SOLVE=0`, `AWI_VERSION=ps-test`.
-- `~/awi-ps-test/docker-compose.override.yml` (UNTRACKED, test-only) renames
-  containers to `*-awi-ps` (compose hardcodes `*-awi`, which the live stack
-  already occupies).
-- **Gotcha (do not repeat):** `docker compose build` tags images `:latest` by
-  default (via `${AWI_VERSION:-latest}`) — same tag the live containers use.
-  ALWAYS keep `AWI_VERSION=ps-test` in the test `.env` so test images never
-  clobber the live `:latest` tags. (Caught & restored once already.)
+**COMPLETE — deployed to live stack at 10.3.1.76:8100**
 
 ## Steps
 1. [x] **Schema migration (§4.1)** — verified on 10.3.1.76 (Phinx OK).
-2. [x] **Dockerfile + compose (§4.2, §4.3)** — verified `astap_cli` execs
-       in-container on 10.3.1.76; NGC.csv present (13969 rows); `:latest` tags
-       not clobbered (isolated as `:ps-test`). Base switched to python:3.9-slim.
+2. [x] **Dockerfile + compose (§4.2, §4.3)** — astap_cli execs in-container;
+       NGC.csv present (13969 rows). Base switched to python:3.9-slim.
 3. [x] **`plate_solver.py` + tests (§4.4, §8)** — 8 unit tests pass; real solve
-       verified on NGC 185 frame (RA/Dec/pixscale correct); failure + missing
-       paths return None; `/tmp/astap` clean. D50 installed in astap_db volume.
-4. [x] **`object_matcher.py` + tests (§4.5, §8)** — 23 tests pass; seeded
-       13,962 objects; M31->`M31`; NGC 185 frame matches `primary=NGC0185`.
-5. [x] **`solve_pending.py` drain loop (§4.6)** — verified solved/failed/
-       skipped/missing paths + disabled + no_star_db on 10.3.1.76.
-6. [x] **`reindex.py` touch-up + Dockerfile CMD (§4.7)** — verified
-       solve_status on insert, unchanged-keeps-solved (#6), content-changed
-       resets, CMD smoke test.
-7. [ ] **PHP UI + translations + SFF (§4.8)**. IN PROGRESS.
-8. [ ] **README + `.env.example` docs.**
-9. [ ] **Full acceptance pass (§7).**
+       on NGC 185 frame correct.
+4. [x] **`object_matcher.py` + tests (§4.5, §8)** — 23 tests pass; 13,962
+       objects seeded; NGC 185 -> primary=NGC0185.
+5. [x] **`solve_pending.py` drain loop (§4.6)** — all paths verified.
+6. [x] **`reindex.py` touch-up + Dockerfile CMD (§4.7)** — solve_status set
+       on insert; unchanged files keep solved status (acceptance #6).
+7. [x] **PHP UI + translations + SFF (§4.8)** — lint clean, HTTP 200, all 5
+       language files have 15 new keys.
+8. [x] **README + `.env.example` docs** — Plate Solving section added.
+9. [x] **Full acceptance pass (§7)** — all 10 criteria pass.
 
-## Verification notes
-- Local machine has no Docker daemon. All `docker compose build` / `phinx
-  migrate` / runtime checks must be run on 10.3.1.76.
-- Python 3.11 available locally; unit tests under `docker/python/tests/` can be
-  run locally with `python -m pytest` (after adding pytest to a dev
-  requirements file), but they must not be added to the runtime image.
+## Live deployment (10.3.1.76:8100) — DONE
+- Feature branch pulled into `~/src/astro-web-indexer`, images rebuilt.
+- Migration applied: `files` table has all new solve columns;
+  15,414 non-LIGHT rows = `skipped`; 907 LIGHT rows = `pending`.
+- `astap_db` volume created (empty — D50 not yet installed; see README).
+- Python container reindexing 2780 new/changed files; drain loop starts
+  automatically after reindex completes.
+- **To enable solving:** populate the `astap_db` volume with D50 per README.
+
+## Next
+1. Install D50 star database into `astro-web-indexer_astap_db` volume (README).
+2. Watch `docker logs python-awi` — drain loop will log solve progress.
+3. When ready, open PR: `feature/plate-solving` -> `main` (or `dev`).

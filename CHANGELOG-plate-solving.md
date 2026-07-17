@@ -74,7 +74,43 @@ entry.
   0; empty star DB marks pending LIGHT -> `no_star_db` with one warning + exit
   (no busy-loop) — acceptance #2, #4, #5.
 
-### Step 6 — `reindex.py` touch-up + Dockerfile CMD (spec §4.7) — VERIFIED on 10.3.1.76
+### Step 7 — PHP UI + translations + SFF (spec §4.8) — VERIFIED on 10.3.1.76
+- `src/includes/db_functions.php`: `buildQueryParts` / `countFiles` /
+  `getFiles` / `sumExposureTime` now take `$solvedObject` param; new
+  `getDistinctSolvedObjects()` for the filter facet.
+- `src/includes/init.php`: reads `$filterSolvedObject = $_GET['solved_object']`.
+- `src/includes/filters.php`: "Identified object" select, wired exactly like
+  the existing object filter; pagination preserves `solved_object` via `$_GET`.
+- `src/includes/template_functions.php`: `formatRaDegToHms`, `formatDecDegToDms`,
+  `solveStatusLabel`, `getIdentifiedObjectMarkup` (status dot, solve tooltip,
+  header-mismatch badge).
+- `src/includes/table.php`: always-visible `primary_object` column (list + thumb
+  views); 6 new advanced-view columns (solve_status, solved_ra/dec/pixscale/
+  rotation, matched_objects).
+- `src/api/find_calibration_files.php`: SFF RA/Dec matching prefers
+  `COALESCE(solved_ra, ra)` / `COALESCE(solved_dec, dec)`.
+- All 5 language files: 15 new keys. PHP lint clean. HTTP 200 on index +
+  solved_object filter. Acceptance #9 (5 hits) passes.
+
+### Step 8 — README + .env.example docs (spec §4.3, §8) — done
+- README.md: "Plate Solving" section — how it works, D50 volume setup command,
+  environment variable table. Also updated `technologies` list with ASTAP/OpenNGC.
+- `.env.example`: AWI_PLATE_SOLVE, AWI_SOLVE_WORKERS, AWI_SOLVE_TIMEOUT with
+  comments. (Committed as part of step 2.)
+
+### Step 9 — Full acceptance pass (spec §7) — ALL PASS
+| # | Result |
+|---|--------|
+| 1 | astap_cli prints usage inside python container (CLI-2026.07.16, MPL 2.0). |
+| 2 | Empty astap_db → LIGHT rows → no_star_db, one clear warning, no crash/loop. |
+| 3 | NGC0185 LIGHT frame solves to primary_object=NGC0185 (matches reality). |
+| 4 | UNKNOWN/DARK/FLAT rows → solve_status=skipped, ASTAP never invoked. |
+| 5 | Unsolvable frame → failed; drain loop continues (tested step 5). |
+| 6 | Reindex unchanged files: processed=0, skipped=12; solved row unchanged. |
+| 7 | catalog_objects: 13,962 rows; re-seed returns 0 (idempotent). |
+| 8 | /tmp/astap is empty after solve; /var/fits mount is read-only. |
+| 9 | grep identified_object src/languages/*.php → 5 hits. |
+| 10 | HTTP 200, 12 thumbnails generated, SFF/moon phase/duplicates functional. |
 - `reindex.py`: computes `solve_status` (`pending` for LIGHT, else `skipped`)
   in the worker, adds it to the INSERT, and resets the solve columns in the ON
   DUPLICATE KEY UPDATE. The full update only fires for content-changed files,
