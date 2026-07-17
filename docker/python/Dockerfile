@@ -45,6 +45,7 @@ RUN wget -q "https://raw.githubusercontent.com/mattiaverga/OpenNGC/v20260501/dat
 
 # Copy the application scripts
 COPY docker/python/reindex.py .
+COPY docker/python/solve_pending.py .
 COPY docker/python/watch_fs.py .
 COPY docker/python/indexer_lib ./indexer_lib/
 
