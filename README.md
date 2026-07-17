@@ -185,8 +185,64 @@ This project is built upon the hard work of many open-source projects, including
 - **[Watchdog](https://github.com/gorakhargosh/watchdog)** for file system monitoring.
 - **PHP**, **Python**, **MariaDB**, and **Nginx** as the core technology stack.
 - **[Tailwind CSS](https://tailwindcss.com/)** for the user interface design.
+- **[ASTAP CLI](https://www.hnsky.org/astap.htm)** (MPL 2.0) for offline plate solving.
+- **[OpenNGC](https://github.com/mattiaverga/OpenNGC)** (CC-BY-SA-4.0) for deep-sky object identification.
+
+## 🌠 Plate Solving
+
+Each `LIGHT` frame is automatically plate-solved in the background using the
+[ASTAP](https://www.hnsky.org/astap.htm) solver, then matched against the
+[OpenNGC](https://github.com/mattiaverga/OpenNGC) catalog to assign canonical
+object names regardless of what the `OBJECT` FITS header says.
+
+### How it works
+
+1. After initial indexing, a background drain loop queries for `LIGHT` frames
+   with `solve_status='pending'` and solves them in parallel (up to
+   `AWI_SOLVE_WORKERS` threads).
+2. Solved frames receive `solved_ra`, `solved_dec`, `solved_pixscale`,
+   `solved_rotation`, and `primary_object` (the best catalog match, Messier
+   designation preferred) plus `matched_objects` (all catalog objects in frame).
+3. The "Identified object" filter in the UI is populated from `primary_object`,
+   independent of the raw `OBJECT` header.
+4. The Smart Frame Finder prefers solved coordinates (`COALESCE(solved_ra, ra)`)
+   for RA/Dec matching.
+
+### Installing the D50 star database
+
+The ASTAP star database is **not** included in the image (it is ~1 GB). It lives
+in the `astap_db` named Docker volume. Without it, `LIGHT` frames are marked
+`solve_status='no_star_db'` and all other features work normally.
+
+To populate the volume on first setup:
+
+```bash
+docker run --rm -v astro-web-indexer_astap_db:/db alpine sh -c \
+  "apk add --no-cache wget unzip >/dev/null 2>&1 && \
+   wget -q https://sourceforge.net/projects/astap-program/files/star_databases/d50_star_database.zip/download \
+        -O /tmp/d.zip && \
+   unzip /tmp/d.zip -d /db && rm /tmp/d.zip && \
+   echo 'D50 installed:' && ls /db | head -3"
+```
+
+> Replace `astro-web-indexer_astap_db` with your actual volume name if you used
+> a custom Docker Compose project name (e.g. `awi-ps_astap_db` for a project
+> named `awi-ps`).
+
+After the volume is populated, restart the python container. It detects the
+database on startup and re-queues any `no_star_db` frames as `pending`.
+
+### Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `AWI_PLATE_SOLVE` | `1` | Set to `0` to disable plate solving entirely. |
+| `AWI_SOLVE_WORKERS` | `2` | Parallel ASTAP solver threads. |
+| `AWI_SOLVE_TIMEOUT` | `60` | Per-frame ASTAP timeout in seconds. |
+
+
 
 ## ⚠️ Disclaimer
 
-This software provided "as is". The author is not responsible for any data loss, corruption, or other issues. **Always maintain backups of your data.** Use at your own risk.
+This software provided "as is". The author is not responsible for any data loss, corruption, or other issues. **Always keep backups of your data.** Use at your own risk.
 
