@@ -39,6 +39,7 @@ services:
     container_name: python-awi
     volumes:
       - ${FITS_DATA_PATH:-./data/fits}:/var/fits:ro
+      - astap_db:/opt/astap_db
     environment:
       - DB_HOST=${DB_HOST:-mariadb}
       - DB_NAME=${DB_NAME:-awi_db}
@@ -48,6 +49,9 @@ services:
       - INDEXER_WORKERS=${INDEXER_WORKERS:-4}
       - RETENTION_DAYS=${RETENTION_DAYS:-30}
       - DEBUG=${DEBUG:-false}
+      - AWI_PLATE_SOLVE=${AWI_PLATE_SOLVE:-1}
+      - AWI_SOLVE_WORKERS=${AWI_SOLVE_WORKERS:-2}
+      - AWI_SOLVE_TIMEOUT=${AWI_SOLVE_TIMEOUT:-60}
     restart: unless-stopped
     depends_on:
       mariadb:
@@ -69,3 +73,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+
+volumes:
+  astap_db:
