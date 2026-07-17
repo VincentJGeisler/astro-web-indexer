@@ -61,3 +61,15 @@ entry.
 - `tests/test_object_matcher.py`: 23 tests pass (run in-container with DB).
 - Real-data checks: seeded 13,962 objects; M31 -> `messier='M31'`;
   `match_objects` on the solved NGC 185 frame returns `primary=NGC0185`.
+
+### Step 5 — `solve_pending.py` drain loop (spec §4.6) — VERIFIED on 10.3.1.76
+- `docker/python/solve_pending.py`: standalone drain loop mirroring reindex.py
+  conventions. Honors `AWI_PLATE_SOLVE`; reconciles `no_star_db`<->`pending`
+  against D50 availability; solves pending LIGHT rows in a ThreadPoolExecutor
+  (all DB writes on the main thread), matches objects, commits per batch of 20.
+  `--once` / `--force-solve` / `--debug`; per-file errors never kill the loop.
+- Verified with synthetic rows over real frames: LIGHT -> `solved`
+  (`primary_object=NGC0185`); unsolvable LIGHT -> `failed` (loop continues);
+  DARK -> `skipped` (untouched); missing file -> `failed`. Disabled path exits
+  0; empty star DB marks pending LIGHT -> `no_star_db` with one warning + exit
+  (no busy-loop) — acceptance #2, #4, #5.

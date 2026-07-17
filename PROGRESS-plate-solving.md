@@ -10,7 +10,7 @@ Docker verification runs on remote host **10.3.1.76** (no local Docker).
 - No `git commit --no-verify` / `-n`. Never push to any remote.
 
 ## Current step
-**Step 5 — `solve_pending.py` drain loop (§4.6)** — IN PROGRESS
+**Step 6 — `reindex.py` touch-up + Dockerfile CMD (§4.7)** — IN PROGRESS
 
 ## Test stack on 10.3.1.76 (isolated from live :8100 deployment)
 - Project: `awi-ps`. Clone: `~/awi-ps-test` (branch `feature/plate-solving`).
@@ -34,8 +34,9 @@ Docker verification runs on remote host **10.3.1.76** (no local Docker).
        paths return None; `/tmp/astap` clean. D50 installed in astap_db volume.
 4. [x] **`object_matcher.py` + tests (§4.5, §8)** — 23 tests pass; seeded
        13,962 objects; M31->`M31`; NGC 185 frame matches `primary=NGC0185`.
-5. [ ] **`solve_pending.py` drain loop (§4.6)** — run `--once` on 10.3.1.76. IN PROGRESS.
-6. [ ] **`reindex.py` touch-up (§4.7)** — set `solve_status` on insert/update.
+5. [x] **`solve_pending.py` drain loop (§4.6)** — verified solved/failed/
+       skipped/missing paths + disabled + no_star_db on 10.3.1.76.
+6. [ ] **`reindex.py` touch-up + Dockerfile CMD (§4.7)**. IN PROGRESS.
 7. [ ] **PHP UI + translations + SFF (§4.8)**.
 8. [ ] **README + `.env.example` docs.**
 9. [ ] **Full acceptance pass (§7).**
